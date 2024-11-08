@@ -11,12 +11,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -35,6 +37,7 @@ fun SettingsScreen(
 ) {
     val ipAddressInput = remember { mutableStateOf("") }
     val portInput = remember { mutableStateOf("") }
+    var checked = remember { mutableStateOf(true) }
 
     //controllerScreenViewModel.stopRepeatingJob()
 
@@ -69,11 +72,25 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            Text(
+                text = "Camera",
+                fontSize = 18.sp,
+                color = Color(255,255,255)
+            )
+
+            Switch(checked = checked.value,
+                onCheckedChange = {
+                    checked.value = it
+                })
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             Button(
                 onClick = { navController.navigate(
                     ControllerScreen(
                         ip = ipAddressInput.value,
-                        port = portInput.value
+                        port = portInput.value,
+                        camera = checked.value
                     )
                 ) },
                 shape = RoundedCornerShape(20),

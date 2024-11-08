@@ -32,6 +32,7 @@ fun ControllerScreen(
 ) {
     val ip = args.ip
     val port = args.port
+    val camera = args.camera
     val maxRadius = with(LocalDensity.current) { (150.dp / 2).toPx() }
 
     controllerScreenViewModel.updateRadius(maxRadius)
@@ -71,14 +72,16 @@ fun ControllerScreen(
                     ) {
                         Text("Force Stop")
                     }
-                    WebView(
-                        state = rememberWebViewState("http://$ip/camera_stream"),
-                        modifier = Modifier
-                            .width(450.dp)
-                            .aspectRatio(4f / 3f)
-                            .padding(10.dp, 0.dp)
-                            .clipToBounds()
-                    )
+                    if(camera == true){
+                        WebView(
+                            state = rememberWebViewState("http://$ip/camera_stream"),
+                            modifier = Modifier
+                                .width(450.dp)
+                                .aspectRatio(4f / 3f)
+                                .padding(10.dp, 0.dp)
+                                .clipToBounds()
+                        )
+                    }
                 }
                 JoyStick(
                     size = 150.dp,
@@ -95,4 +98,5 @@ fun ControllerScreen(
 data class ControllerScreen(
     val ip: String,
     val port: String,
+    val camera: Boolean
 )

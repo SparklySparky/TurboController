@@ -6,15 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.lifecycle.viewModelScope
+import com.sparky.turbocontroller.Cobs
 import com.sparky.turbocontroller.UDPClient
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonObject
 import org.json.JSONObject
@@ -103,7 +102,8 @@ class ControllerScreenViewModel: ViewModel() {
     }
 
     fun startRepeatingJob(timeInterval: Long) {
-        job = CoroutineScope(Dispatchers.Default).launch {
+        job?.cancel()
+        job = viewModelScope.launch(Dispatchers.Default) {
             while (isActive) {
                 val messageOut = JSONObject()
                 val messageRaw = buildJsonObject {
@@ -124,7 +124,12 @@ class ControllerScreenViewModel: ViewModel() {
                     messageOut.put("tu", messageRaw["tu"])
                 }
 
-                UDPSocket.value?.send("${messageOut}\r\n")
+                val messageBytes = messageOut.toString().toCharArray()
+                val encodedMessageBytes = CharArray(Cobs.encodeDstBufMaxLen(messageBytes.size))
+                Cobs.encode(encodedMessageBytes, encodedMessageBytes.size, messageBytes, messageBytes.size)
+                val encodedMessage = encodedMessageBytes.toString()
+
+                UDPSocket.value?.send(encodedMessage)
 
                 _messageOld.value = messageRaw.toString()
 
@@ -133,9 +138,31 @@ class ControllerScreenViewModel: ViewModel() {
         }
     }
 
+    fun sendForceStop()
+    {
+        viewModelScope.launch(Dispatchers.IO) {
+            val message = buildJsonObject {
+                put("stop", Json.parseToJsonElement("true"))
+            }
+
+            val messageBytes = message.toString().toCharArray()
+            val encodedMessageBytes = CharArray(Cobs.encodeDstBufMaxLen(messageBytes.size))
+            Cobs.encode(encodedMessageBytes, encodedMessageBytes.size, messageBytes, messageBytes.size)
+            val encodedMessage = encodedMessageBytes.toString()
+
+            UDPSocket.value?.send(encodedMessage)
+        }
+    }
+
     fun stopRepeatingJob() {
         viewModelScope.launch(Dispatchers.Default) {
-            job?.cancelAndJoin()
+            try {
+                job?.cancelAndJoin()
+                job = null
+                Log.d("ControllerViewModel", "Stopped job successfully.")
+            } catch (e: Exception) {
+                Log.e("ControllerViewModel", "Error stopping job: ${e.localizedMessage}")
+            }
         }
     }
 }

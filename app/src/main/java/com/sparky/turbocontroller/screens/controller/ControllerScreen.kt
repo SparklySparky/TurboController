@@ -68,7 +68,9 @@ fun ControllerScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Button(
-                        onClick = {}
+                        onClick = {
+                            controllerScreenViewModel.sendForceStop()
+                        }
                     ) {
                         Text("Force Stop")
                     }

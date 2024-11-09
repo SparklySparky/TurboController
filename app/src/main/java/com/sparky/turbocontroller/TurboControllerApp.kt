@@ -19,7 +19,9 @@ fun TurboControllerApp(
         startDestination = SettingsScreen
     ) {
         composable<SettingsScreen> {
-            SettingsScreen(navController, controllerScreenViewModel)
+            controllerScreenViewModel.stopRepeatingJob()
+            controllerScreenViewModel.closeSocket()
+            SettingsScreen(navController)
         }
         composable<ControllerScreen> {
             val args = it.toRoute<ControllerScreen>()

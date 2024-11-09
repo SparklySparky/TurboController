@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        //controllerScreenViewModel.stopRepeatingJob()
+        controllerScreenViewModel.stopRepeatingJob()
         controllerScreenViewModel.closeSocket()
     }
 }

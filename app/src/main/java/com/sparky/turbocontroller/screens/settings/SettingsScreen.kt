@@ -33,13 +33,10 @@ import kotlinx.serialization.Serializable
 @Composable
 fun SettingsScreen(
     navController: NavHostController,
-    controllerScreenViewModel: ControllerScreenViewModel
 ) {
     val ipAddressInput = remember { mutableStateOf("") }
     val portInput = remember { mutableStateOf("") }
     var checked = remember { mutableStateOf(true) }
-
-    //controllerScreenViewModel.stopRepeatingJob()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(

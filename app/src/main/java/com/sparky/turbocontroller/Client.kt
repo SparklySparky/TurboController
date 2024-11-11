@@ -1,6 +1,5 @@
 package com.sparky.turbocontroller
 
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.DatagramPacket
@@ -10,15 +9,15 @@ import java.net.InetSocketAddress
 import java.net.Socket
 
 interface Client {
-    suspend fun send(message: String)
+    suspend fun send(message: ByteArray)
     suspend fun close()
 }
 
 class UDPClient(private val ipAddress: String, private val port: Int): Client {
     private val udpSocket = DatagramSocket()
 
-    override suspend fun send(message: String) {
-        val buffer = message.toByteArray()
+    override suspend fun send(message: ByteArray) {
+        val buffer = message
         val packet = DatagramPacket(buffer, buffer.size, InetAddress.getByName(ipAddress), port)
 
         withContext(Dispatchers.IO) {
@@ -40,9 +39,9 @@ class TCPClient(ipAddress: String, port: Int) : Client {
     }
 
 
-    override suspend fun send(message: String) {
+    override suspend fun send(message: ByteArray) {
         withContext(Dispatchers.IO) {
-            tcpSocket.outputStream.write(message.toByteArray())
+            tcpSocket.outputStream.write(message)
         }
     }
 

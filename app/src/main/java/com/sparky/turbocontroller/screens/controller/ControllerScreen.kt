@@ -39,7 +39,7 @@ fun ControllerScreen(
 
     controllerScreenViewModel.createSocket(ip, port)
 
-    controllerScreenViewModel.startRepeatingJob(50)
+    controllerScreenViewModel.startRepeatingJob(100)
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(

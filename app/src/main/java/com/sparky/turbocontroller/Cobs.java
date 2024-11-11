@@ -20,8 +20,8 @@ public class Cobs {
     }
 
     public static class EncodeResult {
-        int outLen;
-        EncodeStatus status;
+        public int outLen;
+        public EncodeStatus status;
     }
 
     public enum DecodeStatus {

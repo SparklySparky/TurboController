@@ -1,6 +1,7 @@
 [versions]
 agp = "8.7.2"
 githubComposeWebview = "0.33.6"
+gson = "2.10.1"
 jetstick = "1.2"
 kotlin = "2.0.0"
 coreKtx = "1.10.1"
@@ -16,6 +17,7 @@ navigationCompose = "2.8.3"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 compose-webview = { module = "io.github.kevinnzou:compose-webview", version.ref = "githubComposeWebview" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 jetstick = { module = "com.github.manalkaff:JetStick", version.ref = "jetstick" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

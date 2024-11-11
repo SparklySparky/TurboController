@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.gson)
     implementation(libs.jetstick)
     implementation(libs.compose.webview)
     implementation(libs.androidx.core.ktx)

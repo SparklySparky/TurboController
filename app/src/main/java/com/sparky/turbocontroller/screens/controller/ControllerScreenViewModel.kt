@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import com.sparky.turbocontroller.Cobs
 import com.sparky.turbocontroller.UDPClient
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +16,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import org.json.JSONObject
 import kotlin.math.atan2
@@ -31,6 +33,12 @@ enum class JoystickId {
 data class JoystickInfo(
     val x: Float,
     val y: Float
+)
+
+data class MessageInfo(
+    @SerializedName("p") var p: Float? = null,
+    @SerializedName("th") var th: Float? = null,
+    @SerializedName("tu") var tu: Float? = null
 )
 
 fun Float.roundTo(places: Int): Float {
@@ -105,31 +113,38 @@ class ControllerScreenViewModel: ViewModel() {
         job?.cancel()
         job = viewModelScope.launch(Dispatchers.Default) {
             while (isActive) {
-                val messageOut = JSONObject()
+                val p = hypot(leftJoystickInfo.value.x, leftJoystickInfo.value.y).roundTo(2)
+                val th = -atan2(leftJoystickInfo.value.y, leftJoystickInfo.value.x).roundTo(2)
+                val tu = rightJoystickInfo.value.x.roundTo(2)
+
+                val messageOut = MessageInfo()
                 val messageRaw = buildJsonObject {
-                    put("p", Json.parseToJsonElement(hypot(leftJoystickInfo.value.x, leftJoystickInfo.value.y).roundTo(2).toString()))
-                    put("th", Json.parseToJsonElement((-atan2(leftJoystickInfo.value.y, leftJoystickInfo.value.x).roundTo(2)).toString()))
-                    put("tu", Json.parseToJsonElement(rightJoystickInfo.value.x.roundTo(2).toString()))
+                    put("p", JsonPrimitive(p))
+                    put("th", JsonPrimitive(th))
+                    put("tu", JsonPrimitive(tu))
                 }
 
                 val oldMessage = JSONObject(messageOld.value)
-
                 if (messageRaw["p"]?.toString() != oldMessage.optString("p")) {
-                    messageOut.put("p", messageRaw["p"])
+                    messageOut.p = p
                 }
                 if (messageRaw["th"]?.toString() != oldMessage.optString("th")) {
-                    messageOut.put("th", messageRaw["th"])
+                    messageOut.th = th
                 }
                 if (messageRaw["tu"]?.toString() != oldMessage.optString("tu")) {
-                    messageOut.put("tu", messageRaw["tu"])
+                    messageOut.tu = tu
                 }
 
-                val messageBytes = messageOut.toString().toCharArray()
-                val encodedMessageBytes = CharArray(Cobs.encodeDstBufMaxLen(messageBytes.size))
-                Cobs.encode(encodedMessageBytes, encodedMessageBytes.size, messageBytes, messageBytes.size)
-                val encodedMessage = encodedMessageBytes.toString()
+                val messageBytes = Gson().toJson(messageOut).toString().toCharArray()
+                val encodedMessageBytes = CharArray(Cobs.encodeDstBufMaxLen(messageBytes.size) + 1)
+                val res = Cobs.encode(encodedMessageBytes, encodedMessageBytes.size - 1, messageBytes, messageBytes.size)
 
-                UDPSocket.value?.send(encodedMessage)
+                encodedMessageBytes[res.outLen] = 0x00.toChar()
+                val finalMessage = encodedMessageBytes.copyOfRange(0, res.outLen + 1)
+
+                val finalMessageBytes = finalMessage.map { it.code.toByte() }.toByteArray()
+
+                UDPSocket.value?.send(finalMessageBytes)
 
                 _messageOld.value = messageRaw.toString()
 
@@ -142,15 +157,19 @@ class ControllerScreenViewModel: ViewModel() {
     {
         viewModelScope.launch(Dispatchers.IO) {
             val message = buildJsonObject {
-                put("stop", Json.parseToJsonElement("true"))
+                put("stop", JsonPrimitive(true))
             }
 
             val messageBytes = message.toString().toCharArray()
-            val encodedMessageBytes = CharArray(Cobs.encodeDstBufMaxLen(messageBytes.size))
-            Cobs.encode(encodedMessageBytes, encodedMessageBytes.size, messageBytes, messageBytes.size)
-            val encodedMessage = encodedMessageBytes.toString()
+            val encodedMessageBytes = CharArray(Cobs.encodeDstBufMaxLen(messageBytes.size) + 1)
+            val res = Cobs.encode(encodedMessageBytes, encodedMessageBytes.size - 1, messageBytes, messageBytes.size)
 
-            UDPSocket.value?.send(encodedMessage)
+            encodedMessageBytes[res.outLen] = 0x00.toChar()
+            val finalMessage = encodedMessageBytes.copyOfRange(0, res.outLen + 1)
+
+            val finalMessageBytes = finalMessage.map { it.code.toByte() }.toByteArray()
+
+            UDPSocket.value?.send(finalMessageBytes)
         }
     }
 

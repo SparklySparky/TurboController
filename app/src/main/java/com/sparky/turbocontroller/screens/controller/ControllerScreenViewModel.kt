@@ -51,11 +51,8 @@ class ControllerScreenViewModel: ViewModel() {
     private val _maxRadius = mutableFloatStateOf(0f)
     val maxRadius: MutableState<Float> get() = _maxRadius
 
-    private val _leftJoystickInfo = mutableStateOf(JoystickInfo(0f, 0f))
-    val leftJoystickInfo: MutableState<JoystickInfo> get() = _leftJoystickInfo
-
-    private val _rightJoystickInfo = mutableStateOf(JoystickInfo(0f, 0f))
-    val rightJoystickInfo: MutableState<JoystickInfo> get() = _rightJoystickInfo
+    private var leftJoystickInfo = JoystickInfo(0f, 0f)
+    private var rightJoystickInfo = JoystickInfo(0f, 0f)
 
     private val _UDPSocket = mutableStateOf(null as UDPClient?)
     val UDPSocket: MutableState<UDPClient?> get() = _UDPSocket
@@ -88,11 +85,11 @@ class ControllerScreenViewModel: ViewModel() {
 
             when (id) {
                 JoystickId.LEFT -> {
-                    _leftJoystickInfo.value = JoystickInfo(newX, newY)
+                    leftJoystickInfo = JoystickInfo(newX, newY)
                 }
 
                 JoystickId.RIGHT -> {
-                    _rightJoystickInfo.value = JoystickInfo(newX, newY)
+                    rightJoystickInfo = JoystickInfo(newX, newY)
                 }
             }
         }
@@ -113,9 +110,9 @@ class ControllerScreenViewModel: ViewModel() {
         job?.cancel()
         job = viewModelScope.launch(Dispatchers.Default) {
             while (isActive) {
-                val p = hypot(leftJoystickInfo.value.x, leftJoystickInfo.value.y).roundTo(2)
-                val th = -atan2(leftJoystickInfo.value.y, leftJoystickInfo.value.x).roundTo(2)
-                val tu = rightJoystickInfo.value.x.roundTo(2)
+                val p = hypot(leftJoystickInfo.x, leftJoystickInfo.y).roundTo(2)
+                val th = atan2(leftJoystickInfo.y, leftJoystickInfo.x).roundTo(2)
+                val tu = rightJoystickInfo.x.roundTo(2)
 
                 val messageOut = MessageInfo()
                 val messageRaw = buildJsonObject {

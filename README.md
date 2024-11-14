@@ -8,10 +8,8 @@
 - **COBS Encoding for Security**: Ensures secure communication with Consistent Overhead Byte Stuffing (COBS) encoding.
 
 ## Screens
-**Controller Screen**
 ![Controller Screen](https://github.com/user-attachments/assets/6eb7380b-af6f-43c5-8d1e-bccf1009e2a9)
 
-**Settings Screen**
 ![Settings Screen](https://github.com/user-attachments/assets/e22168da-c4b9-4d40-bfb3-2f2606fab78b)
 
 ## Installation
